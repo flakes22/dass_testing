@@ -1,3 +1,4 @@
+"""Board module defines the game board, including tiles, properties, and utility methods."""
 from moneypoly.property import Property, PropertyGroup
 from moneypoly.config import (
     JAIL_POSITION,
