@@ -1,3 +1,4 @@
+"""simulates rolling two dice with doubles tracking."""
 import random
 from moneypoly.config import BOARD_SIZE
 
