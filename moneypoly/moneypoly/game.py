@@ -1,5 +1,4 @@
 """controls gameplay flow, turns, and interactions in MoneyPoly."""
-import os
 
 from moneypoly.config import (
     GO_TO_JAIL_POSITION,
