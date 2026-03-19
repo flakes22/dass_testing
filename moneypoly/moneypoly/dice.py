@@ -7,13 +7,13 @@ class Dice:
     def __init__(self):
         self.die1 = 0
         self.die2 = 0
+        self.doubles_streak = 0
         self.reset()
 
     def reset(self):
         """Reset dice face values and the doubles streak counter."""
         self.die1 = 0
         self.die2 = 0
-        self.doubles_streak = 0
 
     def roll(self):
         """Roll both dice and return their combined total."""
