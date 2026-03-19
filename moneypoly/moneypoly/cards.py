@@ -1,3 +1,4 @@
+"""Defines Chance and Community Chest cards along with CardDeck behavior."""
 import random
 
 CHANCE_CARDS = [
