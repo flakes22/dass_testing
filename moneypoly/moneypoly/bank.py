@@ -1,4 +1,4 @@
-
+"""Bank module handles all banking operations such as funds, loans, and transactions."""
 from moneypoly.config import BANK_STARTING_FUNDS
 
 
