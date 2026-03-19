@@ -1,7 +1,6 @@
 """controls gameplay flow, turns, and interactions in MoneyPoly."""
 
 from moneypoly.config import (
-   
     JAIL_FINE,
     AUCTION_MIN_INCREMENT,
     INCOME_TAX_AMOUNT,
