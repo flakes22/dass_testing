@@ -17,7 +17,7 @@ from moneypoly.dice import Dice
 from moneypoly.cards import CardDeck, CHANCE_CARDS, COMMUNITY_CHEST_CARDS
 from moneypoly import ui
 
-
+# pylint: disable=too-many-instance-attributes
 class Game:
     """Manages the full state and flow of a MoneyPoly game session."""
 
@@ -467,4 +467,3 @@ class Game:
             f"  Cash to receive from {partner.name}: $", default=0
         )
         self.trade(player, partner, chosen_prop, cash)
-        
