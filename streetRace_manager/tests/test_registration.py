@@ -49,4 +49,5 @@ def run_registration_tests():
     assert "Error" in result
     print("Test 7 Passed: Normalization consistency")
 
-    print("\nAll Registration Tests Passed!")
+    print("\nAll Registration Unit Tests Passed!\n")
+    print("----------------------------------------")
