@@ -61,6 +61,7 @@ class Property:
 
 
 class PropertyGroup:
+    """Represents a group of properties sharing the same color set."""
     def __init__(self, name, color):
         self.name = name
         self.color = color
