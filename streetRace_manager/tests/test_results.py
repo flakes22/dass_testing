@@ -8,7 +8,7 @@ def run_results_tests():
     state = SystemState()
     results = ResultsModule(state)
 
-    print("Running PURE Unit Tests for Results Module...\n")
+    print("Running Unit Tests for Results Module...\n")
 
     # --- Setup: create driver ---
     driver = CrewMember(1, "Alex")
@@ -75,4 +75,5 @@ def run_results_tests():
     assert state.cash == 2000
     print("Test 6 Passed: Multiple wins accumulate correctly")
 
-    print("\nAll PURE Unit Tests for Results Module Passed!")
+    print("\nAll Unit Tests for Results Module Passed!")
+    print("----------------------------------------")
