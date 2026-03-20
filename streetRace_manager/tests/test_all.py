@@ -6,6 +6,7 @@ from test_results import run_results_tests
 from test_mission_planning import run_mission_tests
 from test_vehicle_upgrade import run_vehicle_upgrade_tests
 from test_mission_reward import run_mission_rewards_tests
+from integration_test import run_integration_tests
 
 if __name__ == "__main__":
     run_registration_tests()
@@ -16,4 +17,10 @@ if __name__ == "__main__":
     run_mission_tests()
     run_vehicle_upgrade_tests()
     run_mission_rewards_tests()
-
+    print("\n========================================")
+    print("Running Integration Tests...")
+    print("========================================\n")
+    run_integration_tests()
+    print("\n========================================")
+    print("ALL TESTS PASSED!")
+    print("========================================")

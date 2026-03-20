@@ -39,4 +39,9 @@ class ResultsModule:
             # --- Update cash ---
             self.state.cash += 1000
 
+        elif result == "lose":
+            # --- Damage car on loss ---
+            if race.car:
+                race.car.condition = max(0, race.car.condition - 30)
+
         return f"Success: Result recorded for race {race_id}"

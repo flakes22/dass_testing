@@ -2,6 +2,7 @@ from core.system_state import SystemState
 from modules.results import ResultsModule
 from models.crew import CrewMember
 from models.race import Race
+from models.car import Car
 
 
 def run_results_tests():
@@ -74,6 +75,36 @@ def run_results_tests():
     assert state.rankings["Alex"] == 20
     assert state.cash == 2000
     print("Test 6 Passed: Multiple wins accumulate correctly")
+
+    # TEST GROUP 7: Car Damage on Loss
+
+    car = Car("CAR_DMG")
+    car.condition = 100
+    state.cars.append(car)
+
+    race5 = Race(105)
+    race5.driver = driver
+    race5.car = car
+    state.races.append(race5)
+
+    results.record_result(105, "lose")
+    assert car.condition == 70   # 100 - 30
+    print("Test 7 Passed: Car damaged on loss")
+
+    # TEST GROUP 8: Car Condition Floor at 0
+
+    car2 = Car("CAR_LOW")
+    car2.condition = 10
+    state.cars.append(car2)
+
+    race6 = Race(106)
+    race6.driver = driver
+    race6.car = car2
+    state.races.append(race6)
+
+    results.record_result(106, "lose")
+    assert car2.condition == 0   # max(0, 10 - 30)
+    print("Test 8 Passed: Car condition floors at 0")
 
     print("\nAll Unit Tests for Results Module Passed!")
     print("----------------------------------------")

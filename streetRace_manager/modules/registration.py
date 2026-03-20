@@ -5,22 +5,19 @@ class RegistrationModule:
     def __init__(self, state):
         self.state = state
 
-    def register_crew(self, name):
+    def register_crew(self, name, role="unassigned"):
         """
-        Registers a new crew member.
-        Improvements:
-        - Case-insensitive uniqueness
+        Register a new crew member, storing name and initial role.
+
+        - Case-insensitive uniqueness for names
         - Auto ID assignment
         """
-
-        # --- Validation: empty ---
         if not name or not name.strip():
             return "Error: Name cannot be empty"
 
         name = name.strip()
         normalized_name = name.lower()
 
-        # --- Duplicate check (case-insensitive) ---
         for member in self.state.crew_members:
             if member.name.lower() == normalized_name:
                 return "Error: Crew member already exists"
@@ -31,6 +28,7 @@ class RegistrationModule:
 
         # --- Create member ---
         new_member = CrewMember(crew_id, name)
+        new_member.role = role
         self.state.crew_members.append(new_member)
 
         return f"Success: Crew member '{name}' registered with ID {crew_id}"
