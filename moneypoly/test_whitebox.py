@@ -361,7 +361,7 @@ def test_jail_card_usage():
     alice.go_to_jail()
     alice.get_out_of_jail_cards = 1
     
-    with patch("moneypoly.ui.confirm", return_value=True):
+    with patch("moneypoly.ui.confirm", return_value=True), patch('builtins.input', return_value='s'):
         game._handle_jail_turn(alice)
         assert alice.in_jail is False
         assert alice.get_out_of_jail_cards == 0
