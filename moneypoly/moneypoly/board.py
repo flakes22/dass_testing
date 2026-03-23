@@ -36,6 +36,7 @@ class Board:
     def __init__(self):
         self.groups = self._create_groups()
         self.properties = self._create_properties()
+        self.railroads = self._create_railroads()
 
     def _create_groups(self):
         """Create and return the eight colour groups."""
@@ -78,9 +79,21 @@ class Board:
             Property("Boardwalk",              39, {"price": 400, "base_rent": 50}, g["dark_blue"]),
         ]
 
+    def _create_railroads(self):
+        """Instantiate railroad properties and return as a list."""
+        return [
+            Property("Reading Railroad",       5,  {"price": 200, "base_rent": 25}),
+            Property("Pennsylvania Railroad",  15, {"price": 200, "base_rent": 25}),
+            Property("B&O Railroad",           25, {"price": 200, "base_rent": 25}),
+            Property("Short Line",             35, {"price": 200, "base_rent": 25}),
+        ]
+
     def get_property_at(self, position):
         """Return the Property at `position`, or None if there is none."""
         for prop in self.properties:
+            if prop.position == position:
+                return prop
+        for prop in self.railroads:
             if prop.position == position:
                 return prop
         return None
