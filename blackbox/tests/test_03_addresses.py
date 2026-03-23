@@ -1,65 +1,73 @@
-import pytest
-import requests
+from conftest import assert_json_response, user_headers
 
-def test_adr_01_get_addresses(base_url, valid_headers):
-    resp = requests.get(f"{base_url}/addresses", headers=valid_headers)
-    assert resp.status_code == 200
-    assert isinstance(resp.json(), list)
 
-def test_adr_02_post_address_valid(base_url, valid_headers):
+USER_ID = 5
+
+
+def test_address_create_invalid_label_rejected(base_url):
+    payload = {
+        "label": "home",
+        "street": "12345 Main Street",
+        "city": "Hyderabad",
+        "pincode": "500001",
+        "is_default": False,
+    }
+    import requests
+
+    resp = requests.post(
+        f"{base_url}/addresses",
+        headers=user_headers(USER_ID),
+        json=payload,
+        timeout=15,
+    )
+    assert_json_response(resp, 400)
+
+
+def test_address_create_invalid_pincode_wrong_length_rejected(base_url):
     payload = {
         "label": "HOME",
-        "street": "123 Test St",
+        "street": "12345 Main Street",
         "city": "Hyderabad",
-        "pincode": "500032",
-        "is_default": True
+        "pincode": "50001",
+        "is_default": False,
     }
-    resp = requests.post(f"{base_url}/addresses", json=payload, headers=valid_headers)
-    assert resp.status_code in [200, 201]
+    import requests
 
-def test_adr_03_post_address_invalid_label(base_url, valid_headers):
-    payload = {
-        "label": "WORK",
-        "street": "123 Test St",
-        "city": "Hyderabad",
-        "pincode": "500032"
-    }
-    resp = requests.post(f"{base_url}/addresses", json=payload, headers=valid_headers)
-    assert resp.status_code == 400
+    resp = requests.post(
+        f"{base_url}/addresses",
+        headers=user_headers(USER_ID),
+        json=payload,
+        timeout=15,
+    )
+    assert_json_response(resp, 400)
 
-def test_adr_04_post_address_invalid_boundaries(base_url, valid_headers):
-    payload = {
+
+def test_address_update_response_must_return_updated_data(base_url):
+    import requests
+
+    create_payload = {
         "label": "HOME",
-        "street": "123", # < 5
-        "city": "Hyderabad",
-        "pincode": "500032"
+        "street": "98765 Testing Avenue",
+        "city": "Pune",
+        "pincode": "411001",
+        "is_default": False,
     }
-    resp = requests.post(f"{base_url}/addresses", json=payload, headers=valid_headers)
-    assert resp.status_code == 400
+    create = requests.post(
+        f"{base_url}/addresses",
+        headers=user_headers(USER_ID),
+        json=create_payload,
+        timeout=15,
+    )
+    created = assert_json_response(create, 200)
+    address_id = created["address"]["address_id"]
 
-def test_adr_05_post_address_invalid_pincode(base_url, valid_headers):
-    payload = {
-        "label": "HOME",
-        "street": "123 Test St",
-        "city": "Hyderabad",
-        "pincode": "123" # != 6
-    }
-    resp = requests.post(f"{base_url}/addresses", json=payload, headers=valid_headers)
-    assert resp.status_code == 400
+    new_street = "11111 New Street"
+    update = requests.put(
+        f"{base_url}/addresses/{address_id}",
+        headers=user_headers(USER_ID),
+        json={"street": new_street, "is_default": True},
+        timeout=15,
+    )
+    updated = assert_json_response(update, 200)
 
-def test_adr_06_put_address_valid(base_url, valid_headers):
-    # Try updating address 1
-    payload = {"street": "Updated St", "is_default": False}
-    resp = requests.put(f"{base_url}/addresses/1", json=payload, headers=valid_headers)
-    if resp.status_code != 404:
-        assert resp.status_code == 200
-
-def test_adr_07_put_address_immutable(base_url, valid_headers):
-    payload = {"city": "New City"}
-    resp = requests.put(f"{base_url}/addresses/1", json=payload, headers=valid_headers)
-    if resp.status_code != 404:
-        assert resp.status_code == 400
-
-def test_adr_08_delete_address(base_url, valid_headers):
-    resp = requests.delete(f"{base_url}/addresses/99999", headers=valid_headers)
-    assert resp.status_code in [400, 404]
+    assert updated["address"]["street"] == new_street

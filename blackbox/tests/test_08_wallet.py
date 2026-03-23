@@ -1,27 +1,48 @@
-import pytest
-import requests
+from conftest import assert_json_response, user_headers
 
-def test_wlt_01_get_wallet(base_url, valid_headers):
-    resp = requests.get(f"{base_url}/wallet", headers=valid_headers)
-    assert resp.status_code == 200
 
-def test_wlt_02_add_wallet_valid(base_url, valid_headers):
-    payload = {"amount": 500}
-    resp = requests.post(f"{base_url}/wallet/add", json=payload, headers=valid_headers)
-    assert resp.status_code == 200
+USER_ID = 9
 
-def test_wlt_03_add_wallet_invalid(base_url, valid_headers):
-    payload = {"amount": -10}
-    resp = requests.post(f"{base_url}/wallet/add", json=payload, headers=valid_headers)
-    assert resp.status_code == 400
 
-def test_wlt_04_pay_wallet_valid(base_url, valid_headers):
-    payload = {"amount": 50}
-    resp = requests.post(f"{base_url}/wallet/pay", json=payload, headers=valid_headers)
-    # Could be 200 or 400 if insufficient
-    assert resp.status_code in [200, 400]
+def test_wallet_get_structure(base_url):
+    import requests
 
-def test_wlt_05_pay_wallet_invalid(base_url, valid_headers):
-    payload = {"amount": -50}
-    resp = requests.post(f"{base_url}/wallet/pay", json=payload, headers=valid_headers)
-    assert resp.status_code == 400
+    resp = requests.get(
+        f"{base_url}/wallet",
+        headers=user_headers(USER_ID),
+        timeout=15,
+    )
+    body = assert_json_response(resp, 200)
+    assert "wallet_balance" in body
+
+
+def test_wallet_add_rejects_zero_and_above_max(base_url):
+    import requests
+
+    r1 = requests.post(
+        f"{base_url}/wallet/add",
+        headers=user_headers(USER_ID),
+        json={"amount": 0},
+        timeout=15,
+    )
+    assert_json_response(r1, 400)
+
+    r2 = requests.post(
+        f"{base_url}/wallet/add",
+        headers=user_headers(USER_ID),
+        json={"amount": 100001},
+        timeout=15,
+    )
+    assert_json_response(r2, 400)
+
+
+def test_wallet_pay_insufficient_balance_rejected(base_url):
+    import requests
+
+    resp = requests.post(
+        f"{base_url}/wallet/pay",
+        headers=user_headers(USER_ID),
+        json={"amount": 10_000_000},
+        timeout=15,
+    )
+    assert_json_response(resp, 400)

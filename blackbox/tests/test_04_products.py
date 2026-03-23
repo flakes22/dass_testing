@@ -1,21 +1,42 @@
-import pytest
-import requests
+from conftest import assert_json_response, user_headers
 
-def test_prd_01_get_products(base_url, valid_headers):
-    resp = requests.get(f"{base_url}/products", headers=valid_headers)
-    assert resp.status_code == 200
-    if len(resp.json()) > 0:
-        assert "product_id" in resp.json()[0]
 
-def test_prd_02_filter_category(base_url, valid_headers):
-    resp = requests.get(f"{base_url}/products?category=Electronics", headers=valid_headers)
-    assert resp.status_code == 200
+USER_ID = 6
 
-def test_prd_03_search_name(base_url, valid_headers):
-    resp = requests.get(f"{base_url}/products?name=Phone", headers=valid_headers)
-    assert resp.status_code == 200
 
-def test_prd_04_get_product_id(base_url, valid_headers):
-    resp = requests.get(f"{base_url}/products/1", headers=valid_headers)
-    if resp.status_code != 404:
-        assert resp.status_code == 200
+def test_products_list_shows_only_active(base_url):
+    import requests
+
+    resp = requests.get(
+        f"{base_url}/products",
+        headers=user_headers(USER_ID),
+        timeout=20,
+    )
+    products = assert_json_response(resp, 200)
+    assert isinstance(products, list)
+    assert len(products) > 0
+    assert all(p.get("is_active") is True for p in products)
+
+
+def test_get_missing_product_returns_404(base_url):
+    import requests
+
+    resp = requests.get(
+        f"{base_url}/products/999999",
+        headers=user_headers(USER_ID),
+        timeout=15,
+    )
+    assert_json_response(resp, 404)
+
+
+def test_products_sort_price_ascending(base_url):
+    import requests
+
+    resp = requests.get(
+        f"{base_url}/products?sort=price_asc",
+        headers=user_headers(USER_ID),
+        timeout=20,
+    )
+    products = assert_json_response(resp, 200)
+    prices = [p["price"] for p in products]
+    assert prices == sorted(prices)

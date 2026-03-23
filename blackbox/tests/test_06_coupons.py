@@ -1,17 +1,73 @@
-import pytest
-import requests
+from conftest import assert_json_response, user_headers
 
-def test_cpn_01_apply_valid(base_url, valid_headers):
-    payload = {"coupon_code": "DISCOUNT10"}
-    resp = requests.post(f"{base_url}/coupon/apply", json=payload, headers=valid_headers)
-    if resp.status_code != 404:
-        assert resp.status_code in [200, 400] # might be 400 if cart < min value
 
-def test_cpn_02_apply_invalid(base_url, valid_headers):
-    payload = {"coupon_code": "INVALID_CODE_XYZ"}
-    resp = requests.post(f"{base_url}/coupon/apply", json=payload, headers=valid_headers)
-    assert resp.status_code in [400, 404]
+USER_ID = 2
 
-def test_cpn_03_remove_coupon(base_url, valid_headers):
-    resp = requests.post(f"{base_url}/coupon/remove", headers=valid_headers)
-    assert resp.status_code in [200, 400]
+
+def _clear_cart(base_url):
+    import requests
+
+    resp = requests.delete(
+        f"{base_url}/cart/clear",
+        headers=user_headers(USER_ID),
+        timeout=15,
+    )
+    assert_json_response(resp, 200)
+
+
+def _add_item(base_url, product_id, quantity):
+    import requests
+
+    resp = requests.post(
+        f"{base_url}/cart/add",
+        headers=user_headers(USER_ID),
+        json={"product_id": product_id, "quantity": quantity},
+        timeout=15,
+    )
+    assert_json_response(resp, 200)
+
+
+def test_coupon_expired_rejected(base_url):
+    import requests
+
+    _clear_cart(base_url)
+    _add_item(base_url, 5, 4)
+    resp = requests.post(
+        f"{base_url}/coupon/apply",
+        headers=user_headers(USER_ID),
+        json={"coupon_code": "EXPIRED100"},
+        timeout=15,
+    )
+    assert_json_response(resp, 400)
+
+
+def test_coupon_fixed_discount_applies_correctly(base_url):
+    import requests
+
+    _clear_cart(base_url)
+    _add_item(base_url, 5, 4)
+    resp = requests.post(
+        f"{base_url}/coupon/apply",
+        headers=user_headers(USER_ID),
+        json={"coupon_code": "BONUS75"},
+        timeout=15,
+    )
+    body = assert_json_response(resp, 200)
+    assert body["discount"] == 75
+    assert body["new_total"] == 925
+
+
+def test_coupon_percent_discount_must_use_percentage(base_url):
+    import requests
+
+    _clear_cart(base_url)
+    _add_item(base_url, 5, 4)
+    resp = requests.post(
+        f"{base_url}/coupon/apply",
+        headers=user_headers(USER_ID),
+        json={"coupon_code": "FIRSTORDER"},
+        timeout=15,
+    )
+    body = assert_json_response(resp, 200)
+    assert body["discount"] == 150
+    assert body["new_total"] == 850

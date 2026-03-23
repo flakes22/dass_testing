@@ -1,17 +1,45 @@
-import pytest
-import requests
+from conftest import assert_json_response, user_headers
 
-def test_rev_01_get_reviews(base_url, valid_headers):
-    resp = requests.get(f"{base_url}/products/1/reviews", headers=valid_headers)
-    assert resp.status_code in [200, 404]
 
-def test_rev_02_post_review(base_url, valid_headers):
-    payload = {"rating": 5, "comment": "Great product"}
-    resp = requests.post(f"{base_url}/products/1/reviews", json=payload, headers=valid_headers)
-    assert resp.status_code in [200, 201, 404]
+USER_ID = 12
 
-def test_rev_03_post_review_invalid(base_url, valid_headers):
-    payload = {"rating": 10, "comment": "Great product"}
-    resp = requests.post(f"{base_url}/products/1/reviews", json=payload, headers=valid_headers)
-    if resp.status_code != 404:
-        assert resp.status_code == 400
+
+def test_review_rating_out_of_range_rejected(base_url):
+    import requests
+
+    resp = requests.post(
+        f"{base_url}/products/1/reviews",
+        headers=user_headers(USER_ID),
+        json={"rating": 6, "comment": "bad rating"},
+        timeout=15,
+    )
+    assert_json_response(resp, 400)
+
+
+def test_review_comment_empty_rejected(base_url):
+    import requests
+
+    resp = requests.post(
+        f"{base_url}/products/1/reviews",
+        headers=user_headers(USER_ID),
+        json={"rating": 4, "comment": ""},
+        timeout=15,
+    )
+    assert_json_response(resp, 400)
+
+
+def test_review_average_must_be_decimal_not_truncated(base_url):
+    import requests
+
+    resp = requests.get(
+        f"{base_url}/products/1/reviews",
+        headers=user_headers(USER_ID),
+        timeout=15,
+    )
+    body = assert_json_response(resp, 200)
+
+    ratings = [r["rating"] for r in body.get("reviews", [])]
+    assert len(ratings) > 0
+
+    true_avg = sum(ratings) / len(ratings)
+    assert body["average_rating"] == true_avg

@@ -1,21 +1,51 @@
-import pytest
-import requests
+from conftest import assert_json_response, user_headers
 
-def test_tkt_01_create_ticket(base_url, valid_headers):
-    payload = {"subject": "Need help", "message": "My order is delayed."}
-    resp = requests.post(f"{base_url}/support/ticket", json=payload, headers=valid_headers)
-    assert resp.status_code in [200, 201]
 
-def test_tkt_02_create_ticket_invalid(base_url, valid_headers):
-    payload = {"subject": "A", "message": "My order is delayed."}
-    resp = requests.post(f"{base_url}/support/ticket", json=payload, headers=valid_headers)
-    assert resp.status_code == 400
+USER_ID = 13
 
-def test_tkt_03_get_tickets(base_url, valid_headers):
-    resp = requests.get(f"{base_url}/support/tickets", headers=valid_headers)
-    assert resp.status_code == 200
 
-def test_tkt_04_update_ticket(base_url, valid_headers):
-    payload = {"status": "IN_PROGRESS"}
-    resp = requests.put(f"{base_url}/support/tickets/1", json=payload, headers=valid_headers)
-    assert resp.status_code in [200, 404, 400]
+def test_support_ticket_subject_too_short_rejected(base_url):
+    import requests
+
+    resp = requests.post(
+        f"{base_url}/support/ticket",
+        headers=user_headers(USER_ID),
+        json={"subject": "abcd", "message": "hello"},
+        timeout=15,
+    )
+    assert_json_response(resp, 400)
+
+
+def test_support_ticket_initial_status_open(base_url):
+    import requests
+
+    resp = requests.post(
+        f"{base_url}/support/ticket",
+        headers=user_headers(USER_ID),
+        json={"subject": "Need help with cart", "message": "Unable to apply coupon"},
+        timeout=15,
+    )
+    body = assert_json_response(resp, 200)
+    assert body["status"] == "OPEN"
+
+
+def test_support_status_transition_must_be_one_way(base_url):
+    import requests
+
+    create = requests.post(
+        f"{base_url}/support/ticket",
+        headers=user_headers(USER_ID),
+        json={"subject": "Transition validation", "message": "Checking OPEN to CLOSED"},
+        timeout=15,
+    )
+    created = assert_json_response(create, 200)
+    ticket_id = created["ticket_id"]
+
+    direct_close = requests.put(
+        f"{base_url}/support/tickets/{ticket_id}",
+        headers=user_headers(USER_ID),
+        json={"status": "CLOSED"},
+        timeout=15,
+    )
+
+    assert direct_close.status_code == 400, direct_close.text
