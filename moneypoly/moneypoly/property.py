@@ -6,16 +6,29 @@ class Property:
 
     FULL_GROUP_MULTIPLIER = 2
 
-    def __init__(self, name, position, financials, group=None):
+    def __init__(self, name, position, financials, base_rent=None, group=None):
         """
-        Create a property from a compact financial profile.
-        `financials` must provide `price` and `base_rent`.
+        Create a property.
+        Supports both signatures:
+        - Property(name, position, price, base_rent, group=None)
+        - Property(name, position, {"price": ..., "base_rent": ...}, group=None)
         """
         self.name = name
         self.position = position
-        self.financials = dict(financials)
+        if isinstance(financials, dict):
+            # New style may pass group as the 4th positional argument.
+            if base_rent is not None and group is None:
+                group = base_rent
+            self.financials = dict(financials)
+        else:
+            # Backward-compatible style: explicit numeric price/base_rent.
+            self.financials = {
+                "price": financials,
+                "base_rent": base_rent,
+            }
         self.owner = None
         self.is_mortgaged = False
+        self.houses = 0
 
         # Register with the group immediately on creation
         self.group = group
