@@ -6,6 +6,7 @@ from .config import (
     INCOME_TAX_AMOUNT,
     LUXURY_TAX_AMOUNT,
     MAX_TURNS,
+    BOARD_SIZE,
     GO_SALARY,
 )
 from .player import Player
@@ -337,16 +338,8 @@ class Game:
 
     def _apply_move_to_card(self, player, value):
         """Move player to an absolute board position and resolve tile effects."""
-        old_pos = player.position
-        player.position = value
-        if value < old_pos:
-            player.add_money(GO_SALARY)
-            print(f"  {player.name} passed Go and collected ${GO_SALARY}.")
-        tile = self.board.get_tile_type(value)
-        if tile == "property":
-            prop = self.board.get_property_at(value)
-            if prop:
-                self._handle_property_tile(player, prop)
+        steps = (value - player.position) % BOARD_SIZE
+        self._move_and_resolve(player, steps)
 
     def _apply_collect_from_all_card(self, player, value):
         """Collect `value` from each other solvent player."""
