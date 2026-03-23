@@ -9,6 +9,15 @@ Tests are designed by inspecting the source code of every module and targeting:
 Each test is named descriptively so the reason it exists is self-evident.
 """
 
+from pathlib import Path
+import sys
+
+# Support running directly from `whitebox/tests`:
+# `python test_whitebox.py`
+CODE_DIR = Path(__file__).resolve().parents[1] / "code"
+if str(CODE_DIR) not in sys.path:
+    sys.path.insert(0, str(CODE_DIR))
+
 import pytest
 from unittest.mock import patch
 
